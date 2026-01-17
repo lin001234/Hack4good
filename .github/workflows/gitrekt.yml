@@ -1,0 +1,25 @@
+name: GitRekt Judge
+on: [push]
+jobs:
+  judge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ask AI Judge
+        run: |
+          echo "Judging your code..."
+          HTTP_CODE=$(curl -s -o response.json -w "%{http_code}" -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"repo\": \"${{ github.repository }}\", \"sha\": \"${{ github.sha }}\"}" \
+            http://localhost:3000/api/judge)
+          
+          echo "Response Code: $HTTP_CODE"
+          cat response.json
+          
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "Your code has been deemed UNWORTHY."
+            exit 1
+          else
+            echo "Your code passes... for now."
+            exit 0
+          fi
